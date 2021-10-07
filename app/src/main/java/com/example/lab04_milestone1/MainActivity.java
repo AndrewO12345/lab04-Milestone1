@@ -6,12 +6,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private Button startButton;
     private volatile boolean stopThread = false;
+    private TextView textView;
+    private int percent = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         startButton = findViewById(R.id.startButton);
+        textView = findViewById(R.id.textView);
     }
 
     public void mockFileDownloader() {
@@ -29,17 +33,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         for (int downloadProgress = 0; downloadProgress <= 100; downloadProgress=downloadProgress+10) {
+            percent = downloadProgress;
             if (stopThread) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         startButton.setText("Start");
+                        textView.setText("");
                     }
                 });
                 return;
             }
-            Log.d(TAG, "Download Progress: " + downloadProgress + "%");
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    textView.setText("Download Progress: " + percent + "%");
+                }
+            });
+
+            // Log.d(TAG, "Download Progress: " + downloadProgress + "%");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -51,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 startButton.setText("Start");
+                textView.setText("");
             }
         });
 
@@ -64,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startDownload(View view) {
+        stopThread = false;
         ExampleRunnable runnable = new ExampleRunnable();
         new Thread(runnable).start();
     }
